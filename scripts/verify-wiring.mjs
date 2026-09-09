@@ -1,0 +1,14 @@
+import { createRequire } from "node:module";
+import fs from "node:fs";
+const req = createRequire("D:/Deepseek Harness Desktop Workshop/package.json");
+const yaml = req("yaml");
+const home = yaml.parse(fs.readFileSync(process.env.DSH_HOME + "/cordis.patch.yml", "utf8"));
+console.log("home patch rows:", home.length, "| clipboard row:", JSON.stringify(home.find((r) => r.id === "kidai-clipboard")));
+const bundle = yaml.parse(fs.readFileSync("D:/Deepseek Harness Desktop Workshop/kidai-clipboard/cordis.patch.yml", "utf8"));
+console.log("bundle patch:", JSON.stringify(bundle));
+const profile = yaml.parse(fs.readFileSync(process.env.DSH_HOME + "/profiles/desktop/cordis.patch.yml", "utf8"));
+console.log("profile patch rows:", profile.length);
+const pkg = JSON.parse(fs.readFileSync(process.env.DSH_HOME + "/profiles/desktop/package.json", "utf8"));
+console.log("bundle list contains clipboard:", pkg.dsh.profile.bundles.includes("kidai-clipboard"), "| dep:", pkg.dependencies["kidai-clipboard"]);
+const clientFile = fs.existsSync("D:/Deepseek Harness Desktop Workshop/kidai-clipboard/lib/client.js");
+console.log("client.js exists:", clientFile);
