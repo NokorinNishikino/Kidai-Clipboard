@@ -1,0 +1,80 @@
+{
+  "name": "kidai-clipboard",
+  "productName": "Kidai-ClipBoard (纪代剪贴板) (KCB)",
+  "version": "1.0.0",
+  "description": "Kidai-ClipBoard (KCB, 纪代剪贴板): a global advanced clipboard for DeepSeek Harness. A draggable floating window inside the DSH window — saves session state (branch/continue in a new session) and user inputs (paste into the composer), with Obsidian-style folder tree, color labels, tag management and batch delete. Runs in DSH Desktop and the Web UI.",
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "cordis",
+    "plugin",
+    "clipboard",
+    "kidai"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README_EN.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NokorinNishikino/Kidai-Clipboard.git"
+  },
+  "homepage": "https://github.com/NokorinNishikino/Kidai-Clipboard#readme",
+  "author": {
+    "name": "nokorin"
+  },
+  "contributors": [
+    {
+      "name": "nokorin"
+    }
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-store",
+        "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-api-session-controller"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    }
+  }
+}
