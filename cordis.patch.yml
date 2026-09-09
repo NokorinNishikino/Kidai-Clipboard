@@ -1,0 +1,11 @@
+# kidai-clipboard bundle patch: one loader row mounts the host half.
+#
+# The package also declares `dsh.client`, so the client-modules node half scans
+# this same loader entry and serves lib/client.js to the browser. The host half
+# only owns persistence (/kidai-clipboard/state.json under $DSH_HOME) through
+# the webServer; all UI — the draggable floating window, session/input saves,
+# folders, tags and colors — lives in the client.
+
+- insert:
+    - id: kidai-clipboard
+      name: 'kidai-clipboard'
