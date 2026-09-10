@@ -3,7 +3,42 @@
 本文件记录 Kidai-ClipBoard (KCB) 的重要变更。
 All notable changes to this project are documented here. 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
-## [1.0.3] - 2025-xx-xx / Latest
+## [1.1.4] - 2026-09-10
+
+### 修复 / Fixed
+- **收起键不好用**：标题栏的按钮（收起/多选/关闭）按下时 `pointerdown` 会冒泡到标题栏的拖动逻辑 —— 手抖超过 3px 阈值就会把整个窗口拖走，点"收起"常常变成"移动窗口"。现在标题栏检测到按在按钮上时不启动拖动。同时把收起后的胶囊做得好按：hover 时加宽（36→42px）并高亮、加 `:active`/`:focus-visible` 反馈、去掉多余的投影（与停靠扁平风格一致）、加一个 `◂` 箭头提示"点击展开"。
+- **启动崩溃（严重）**：`conversation.chat.turnTail` 是 **chain 类型槽位**，注册时必须提供 `options.select`，缺失会让 `slots.register` 抛错 —— 而该注册发生在 `apply()` 期间，于是**整个插件 apply 失败**：其后的「自动剪贴板」入口与设置页注册全部中断，DSH 渲染器直接启动失败（日志：`chain slot "conversation.chat.turnTail" requires options.select`）。修复：移除该探针槽位，轮次改为从回合尾部 DOM 的 `data-turn-tail` 属性读取（按钮本就渲染在其中），并新增 `safeRegister()` —— 任何单个槽位注册失败只告警，绝不再拖垮插件。
+- **长会话只能看到最近几轮**：分支点浏览上限原先复用了「最大会话记录数」设置（用户设置为 1000 条事件 ≈ 41 轮），更早的轮次根本加载不到。现在浏览上限独立（20000 事件），该设置只影响快照体积：超出时记录按上限裁剪，**分支点 `atSeq` 与转录保持完整**。
+- **点某条回复却定位到最新轮**：入口按钮原先只靠 `messageId` 匹配记录，目标轮次尚未加载时会回落到最新轮。现在优先从回合尾部 DOM 的 `data-turn-tail` 取该轮轮号，按轮次精确定位；该轮加载进来后自动切换选中。
+
+### 新增 / Added
+- **会话中途截断分支**：保存会话时弹出「分支点」选择器，按已完成轮次（`turn/end`）列出每一轮及其对应的用户消息摘要，可选择「存到第 N 轮为止」——会话走到 12345 时可以只保存 123，其后的 45 不进入快照。
+- 快照新增 `atSeq`（= 所选轮次 `turn/end` 的 seq）、`turnCount` / `totalTurns`；`records`、`messageCount` 与转录同步裁剪到该轮。
+- 会话详情显示「分支点：第 N / M 轮」，截断时提示「其后的 K 轮不会带入新会话」。
+- **滚动栏 + 向上懒加载**：选择器先加载最新一页即打开，后台继续向上翻页补齐更早轮次；滚动到顶部也会按需加载（`session.page` 以 `throughSeq` 回溯），顶部状态提示「正在加载更早的历史…／已到会话开头 · 共 N 轮」。
+- **助手回复行入口**：每条助手回复下方的操作行（复制/赞/踩/重试…）新增「保存会话分支」按钮（槽位 `conversation.chat.assistant-actions`），点击打开同一个选择器，并默认定位到该条回复所在的轮次。
+
+### 性能 / Performance
+- **拖动/缩放不再卡顿**：原先每次 `pointermove` 都会 `commitData` —— 即每帧深拷贝整个 state、`JSON.stringify` 写 localStorage、并排队一次 PUT（state 里还带着会话快照的 `records` / `transcript`，可达数 MB）。现在拖动期间**完全不写 store**：用 `requestAnimationFrame` 节流，把宽度/坐标直接写到 DOM（实时值同时放进 `liveResize`，这样任何一次重渲染也用实时值、不会弹回），**松手才落库一次**；缩放期间会话区的挤出也走缓存的元素引用，不再每帧 `measureDock`。
+- **localStorage 写入合并**：`cacheLocalData`（仅作启动兜底）改为 400ms 合并写入，避免大 state 反复同步序列化阻塞主线程。
+- **工作区联动按时间节流**：改 DSH 会话区的宽度会让整棵会话 DOM（含消息列表）重排，是"不流畅"的第二大来源。现在面板每帧跟手，左侧会话区的联动**按 ~90ms 节流**更新（保留"一起拉动"的手感，同时把重排次数降一个数量级），松手后强制对齐到最终宽度。
+- **拖动时的"占位屏"**：缩放拖动期间直接把面板内容隐藏（`.kidc_resizingW .kidc_panel>*{visibility:hidden}`），改由一层占位屏显示实时尺寸与「松开以恢复内容」提示 —— 拖动过程中内容完全不渲染，每帧只剩盒子尺寸变化，layout/paint 近乎归零；松手立刻恢复内容并按最终宽度重排一次。顺带补上一直缺失的 `resizeHint` i18n 键（原来标题显示的是 key 本身）。
+- **拖动时冻结面板内容的排版**：拖动期间把面板内容宽度锁在起始宽度（`--kidc-lock-w`），内容不再随盒子变窄而重排 —— 每帧只剩外层盒子宽度变化（基本只做裁剪），帧率明显更稳；同时给 `.kidc_resizing` 加 `will-change:width` / `translateZ(0)`，并在拖动期间禁用面板内部过渡动画。松手立即解除锁定、按最终宽度重排一次。
+- **面板 containment + 拖动遮罩**：拖动期间给面板加 `contain: layout paint` 与 `pointer-events: none`（把重排/重绘限制在面板内部、跳过内部 hover 计算），并在 `.kidc_root` 内插入一层透明全屏遮罩，使指针下方的 DSH 内容不再做 hover 命中测试与样式重算。
+
+### 变更 / Changed
+- **停靠外观改为扁平精简**：停靠时去掉投影（`box-shadow:none`）与面板自身的顶边框，面板顶边**紧贴会话区分界线的下沿**（那条线是会话 header 的 `::after`，横跨整个内容区并一直画到窗口右缘），左侧保留 1px 同色分隔线 —— 顶部只剩那一条线，不再有第二条边框。配套修正两点：① 挤出只作用于会话**滚动区**（`[data-conversation-scroll]`），不再连 header 一起挤窄（否则分界线会跟着变短，卡片上方就接不上）；② dock 几何**每次渲染后重测**（仅 top/bottom 变化才 setState），避免会话头部高度变化后面板与分界线错位。
+- **续写锚点**：`continueSession` 优先使用 `atSeq`（选定轮次边界），旧快照自动回退 `lastSeq`；仍失败则降级为整会话分支，最后才走转录兜底。
+- 只有一个已完成轮次且没有更早历史时不再弹窗，直接保存（等价「全部内容」）；没有轮次边界（空会话、记录被裁剪）保持原行为。
+- `slimRecord` 为助手消息保留 `turn` 与 `messageId`，用于把入口按钮所在消息映射到轮次。
+- 保存前自动补齐更早的历史页，避免长会话中保存早期轮次时转录缺开头。
+
+### 测试 / Tests
+- 新增 jsdom 端到端回归 `run-branch-test.mjs`：3 轮会话选第 2 轮保存 → 断言 `atSeq=7 / turnCount=2 / messageCount=2`、转录丢弃第 3 轮、`fork` 实际收到 `{sessionId, atSeq: 7, increaseTitle: true}`。
+- 新增 `run-branch-paging-test.mjs`：6 轮会话分两页 → 断言弹窗先显示最新 2 轮、后台补齐为 6 轮、`page(throughSeq=15)` 被调用、点击助手行入口后默认选中第 4 轮、保存 `atSeq=15` 且转录丢弃第 5、6 轮。
+- 新增 `run-dock-flat-test.mjs`：停靠时渲染贯穿分隔线（top=119px）、CSS 去阴影/去顶边框、收起态不画线；并复刻 DSH 槽位类型校验（chain 需 `select`／list 需 `id`／keyed 需 `key`）防止再次出现"注册选项不合法 → apply 崩溃"。
+
+## [1.0.3] - 2026-09-09
 
 ### 修复 / Fixed
 - **「编辑」功能点击后窗口消失**：修复 `TagChips` 组件读取 `useApp()` 顶层 `data`（不存在）导致的 `TypeError: Cannot read properties of undefined (reading 'tags')`，改为从 `appView?.app?.data` 安全读取并回退空值，此前该崩溃会让整个剪贴板窗口消失，需进入管理页重置窗口才可恢复。
@@ -28,7 +63,7 @@ All notable changes to this project are documented here. 格式参照 [Keep a Ch
 - 标签体系：任意条目打标签（中文/英文），标签页筛选；预设标签「会话预设」。
 - 高亮/来源追踪、多标签页、快捷键.
 
-## [1.0.0] - 2025-05-xx / Initial
+## [1.0.0] - 2026-09-09 / Initial
 
 首次发布：跨会话剪贴板 + 会话预设 + 可停靠面板 + 标签体系。
 
