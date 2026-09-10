@@ -1,7 +1,7 @@
 {
   "name": "kidai-clipboard",
   "productName": "Kidai-ClipBoard (纪代剪贴板) (KCB)",
-  "version": "1.0.3",
+  "version": "1.1.4",
   "description": "Kidai-ClipBoard (KCB, 纪代剪贴板): a global advanced clipboard for DeepSeek Harness. A draggable floating window inside the DSH window — saves session state (branch/continue in a new session) and user inputs (paste into the composer), with Obsidian-style folder tree, color labels, tag management and batch delete. Runs in DSH Desktop and the Web UI.",
   "keywords": [
     "deepseek",
