@@ -169,5 +169,57 @@ if (stateRoute === undefined || pingRoute === undefined) throw new Error("routes
   console.log("ok: ping responds");
 }
 
+// 7. Branch-point fields survive sanitization (atSeq / turnCount / totalTurns)
+{
+  const putRes = makeRes();
+  const putReq = makeReq("PUT", JSON.stringify({
+    state: {
+      schema: 1,
+      folders: [],
+      tags: [],
+      entries: [{
+        id: "e-branch",
+        kind: "session",
+        title: "分支快照",
+        text: null,
+        session: {
+          sessionId: "s-branch",
+          capturedAt: 1,
+          lastSeq: 7,
+          atSeq: 7,
+          turnCount: 2,
+          totalTurns: 3,
+          messageCount: 2,
+          chars: 10,
+          title: "分支快照",
+          agentPreset: null,
+          cwd: null,
+          records: [],
+          transcript: "abc",
+        },
+        folderId: null,
+        tagIds: [],
+        color: null,
+        pinned: false,
+        createdAt: 1,
+        updatedAt: 1,
+      }],
+      settings: { window: null, ui: {} },
+    },
+  }));
+  stateRoute.handler(putReq, putRes);
+  pumpBody(putReq);
+  if (JSON.parse(putRes._body).ok !== true) throw new Error("branch PUT rejected: " + putRes._body.slice(0, 200));
+
+  const res = makeRes();
+  stateRoute.handler(makeReq("GET"), res);
+  const entry = JSON.parse(res._body).state.entries.find((e) => e.id === "e-branch");
+  if (entry === undefined) throw new Error("branch entry lost");
+  if (entry.session.atSeq !== 7) throw new Error("atSeq lost: " + String(entry.session.atSeq));
+  if (entry.session.turnCount !== 2) throw new Error("turnCount lost: " + String(entry.session.turnCount));
+  if (entry.session.totalTurns !== 3) throw new Error("totalTurns lost: " + String(entry.session.totalTurns));
+  console.log("ok: branch-point fields round-trip (atSeq/turnCount/totalTurns)");
+}
+
 fs.rmSync(tmpHome, { recursive: true, force: true });
 console.log("ALL HOST SMOKE TESTS PASSED");
