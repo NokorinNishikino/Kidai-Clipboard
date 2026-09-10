@@ -16,8 +16,11 @@ Conversations, commands and snippets are scattered across sessions. KCB brings "
 - 🪟 **Dockable floating window**: drag, resize both ways, snap to the right edge (workspace yields automatically, never overlapped), collapse to a side pill
 - 📝 **Save input**: one-click grab of the current composer draft
 - 🧩 **Save session**: full history snapshot (title / fork point / transcript), renameable
+- ✂️ **Cut-off branch**: pick "keep up to turn N" while saving and every later turn is dropped (session at 12345 → save 123 only)
+- 📜 **Scrollable turn picker**: the newest turns appear at once and older history keeps loading as you scroll up
+- 🔘 **Per-reply entry**: a "save session branch" button in every assistant reply's action row, defaulting to that reply's turn
 - 🌳 **Folder tree**: Obsidian-style collapsible groups; ungrouped entries stay flat
-- 🔀 **Continue in a new session**: runs DSH's native fork on a snapshot — one click to fork & continue; transcript fallback if the source session is gone
+- 🔀 **Continue in a new session**: runs DSH's native fork on a snapshot at the chosen turn (resume from 123 and keep going 12367); transcript fallback if the source session is gone
 - 🏷️ **Manage**: folders, colored tags, per-entry colors, pinning, search, multi-select batch delete
 
 > **Ready to use** — after restarting DSH, open it from the "Auto Clipboard" launcher at the bottom of the sidebar.
@@ -63,11 +66,14 @@ Or remove the dependency and bundle declaration from `profiles/desktop/package.j
 | Host half | `lib/index.js` | `webServer` routes `GET/PUT /kidai-clipboard/state` + `/ping`; JSON validation & atomic persistence |
 | Client half | `lib/client.js` | floating-window UI, capture/paste/fork logic, folder tree, tag management (ModuleLoader format) |
 | Composition | `cordis.patch.yml` | single loader row mounts the host; `dsh.client` declaration feeds the browser module manifest |
-| Slots | — | `sidebar.footer.action` / `shell.overlay` / `kidai-hub.tabs` / `settings.section` |
+| Slots | — | `sidebar.footer.action` / `shell.overlay` / `conversation.chat.assistant-actions` / `kidai-hub.tabs` / `settings.section` |
 
-- **Dock**: `settings.window.dock: "right"`; right edge pinned, drag the left edge to resize (min 280); workspace is *squeezed* via margin so nothing is covered; released automatically on collapse/close
+- **Dock**: `settings.window.dock: "right"`; right edge pinned, drag the left edge to resize (min 280); workspace is *squeezed* via margin so nothing is covered; released automatically on collapse/close; when docked the panel is flat and seamless (no shadow, no own top border — its top edge sits flush under the conversation divider)
+- **Drag performance**: while dragging/resizing there are **no store writes and no requests** — size goes straight to the DOM (throttled by `requestAnimationFrame`), the workspace linkage is throttled to ~90 ms, and the panel content is hidden behind a live-size placeholder screen; everything is committed once on release
 - **Session capture**: `remote.session.follow` + reverse `page` (slim events), storing `sessionId / lastSeq / transcript / agentPreset / cwd`
-- **Continue**: `ctx.sessions.fork({sessionId, atSeq})` — tries the saved point first, falls back to the last completed turn, then to a transcript paste
+- **Cut-off**: completed turns come from `turn/end` events; choosing turn N sets `atSeq` to that event's seq and records `turnCount` / `totalTurns`, trimming `records` and the transcript to match
+- **History paging**: the picker loads the newest `follow` page first, then walks back with `session.page({throughSeq})` (scroll-to-top does the same; browsing is capped at 20000 events, independent of the max-records setting) and tops up before saving
+- **Continue**: `ctx.sessions.fork({sessionId, atSeq})` — cuts at the chosen turn first, falls back to the last completed turn, then to a transcript paste
 - **Safety**: 65 MB body cap, id whitelist regex, corrupt-JSON tolerance, atomic tmp+rename
 - **Tests**: `scripts/smoke-*.mjs` (host routes / contract / slot behaviour); `scripts/verify-*.mjs` (real composition / capture checks)
 
