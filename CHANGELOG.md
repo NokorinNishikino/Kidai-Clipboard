@@ -3,6 +3,16 @@
 本文件记录 Kidai-ClipBoard (KCB) 的重要变更。
 All notable changes to this project are documented here. 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
+## [1.1.8] - 2026-09-12
+
+### 变更 / Changed
+- **靠边停靠改为「拖就跟手，松手滑入」**：拖动期间面板一律跟随指针，松手时若判定为停靠，就用 200ms 过渡平滑滑到停靠位（贴右缘 8px / 顶到会话区上沿 / 高度到底，`.kidc_snapBack`），随后交给 React 的停靠样式接管；若拖离边缘则停留在浮动位置。两种情况都覆盖：**停靠中拖动**（松手归位，既不"乱跳"也不"完全拉不动"）与**浮动拖到边缘**（滑入停靠，不再瞬间闪现）。
+
+### 修复 / Fixed
+- **切换会话后内容被展开的停靠面板挡住（真正的根因）**：挤出原本写在会话容器元素的 **inline `margin-right`** 上，而 DSH 重渲染会话视图时 **React 会清掉它不认识的 inline 属性** —— 一换会话 margin 就没了，新会话内容直接显示在面板下面（拖一下宽度才恢复，因为那时 KCB 的 effect 重跑了）。上一版加的 `MutationObserver` 没能解决，是因为它只监听 `childList`，而 React 改的是 `style` **属性**、并不触发该回调。现在改为**注入一条样式表规则**：`#kidai-clipboard-dock-inset` → `[data-conversation-scroll]{margin-right:Npx!important;margin-left:0!important}`。规则挂在样式表里，React 清不掉；而新会话容器只要带 `[data-conversation-scroll]` 属性就自动匹配，完全无需重新挂载。拖动期间的联动、松手后的对齐、收起/关闭的解除都改为更新这条规则。
+- **收起成胶囊后盖住内容右缘**：收起时原来把挤出完全解除（工作区恢复全宽），但胶囊本身仍占着右缘 36–42px，于是内容被压在胶囊下面。现在收起态改为**挤出胶囊宽度**（42px，`DOCK_PILL_WIDTH`），展开时恢复全宽，只有在关闭/隐藏窗口时才彻底解除。
+- **停靠状态下拖动窗口，位置会乱**：拖动基准取的是 `settings.window.x/y`，但停靠时面板由 `right/top` 定位，`x/y` 只是**陈旧的浮动坐标**（例如 800/225）—— 于是一按下去拖动，面板就跳到那个旧坐标上。现在基准改取面板**当前实际 rect**（`getBoundingClientRect`），停靠/浮动一视同仁；拖动期间高度也钉在起始实际高度（不再出现"停靠到底 → 松手跳成浮动高度"的跳变），并把实际宽高随位置一起落库（`commitWindow(x, y, dock, w, h)`）。
+
 ## [1.1.6] - 2026-09-11
 
 ### 新增 / Added
