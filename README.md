@@ -69,7 +69,8 @@ dsh plugin --profile desktop remove kidai-clipboard
 | 组装 | `cordis.patch.yml` | 单 loader row 挂载 host；`dsh.client` 声明驱动 browser 模块 |
 | 槽位 | —— | `sidebar.footer.action` / `shell.overlay` / `conversation.chat.assistant-actions` / `kidai-hub.tabs` / `settings.section` |
 
-- **停靠**：`settings.window.dock: "right"`；右端钉死左侧拖宽（最小 280）；`margin` 挤出工作区；收起/关闭自动释放；停靠时扁平无缝（无投影、去掉自身顶边框、顶边紧贴会话区分界线）
+- **停靠**：`settings.window.dock: "right"`；右端钉死左侧拖宽（最小 280）；收起/关闭自动释放；停靠时扁平无缝（无投影、去掉自身顶边框、顶边紧贴会话区分界线）
+- **工作区挤出**：注入样式表规则 `#kidai-clipboard-dock-inset` → `[data-conversation-scroll]{margin-right:Npx!important}`（**不用 inline style** —— DSH 重渲染会把 React 不认识的 inline 属性清掉，切换会话后内容就会被面板挡住）；收起态挤出胶囊宽度 42px；拖动/拖到边缘时跟手，松手用 `.kidc_snapBack` 过渡滑入停靠位
 - **拖动性能**：拖动/缩放期间**零 store 写入、零请求**，尺寸直接写 DOM（`requestAnimationFrame` 节流），左侧工作区联动按 ~90 ms 节流；面板内容在拖动时隐藏并显示实时尺寸占位屏，松手才落库一次
 - **缩放把手位置**：`settings.ui.resizeHandle` = `corner`（默认，右下角）/ `edge`（窗口左侧整条竖列；左边界跟随指针、右边界固定）—— 右下角被其它插件遮挡时用 `edge`
 - **操作按钮位置**：`settings.ui.actionBar` = `bottom`（默认，底部一行：新建输入 / 保存快照 / 抓取输入）/ `left`（面板左侧竖栏排列）
