@@ -19,6 +19,7 @@ Conversations, commands and snippets are scattered across sessions. KCB brings "
 - ✂️ **Cut-off branch**: pick "keep up to turn N" while saving and every later turn is dropped (session at 12345 → save 123 only)
 - 📜 **Scrollable turn picker**: the newest turns appear at once and older history keeps loading as you scroll up
 - 🔘 **Per-reply entry**: a "save session branch" button in every assistant reply's action row, defaulting to that reply's turn
+- 🧰 **Adjustable layout**: action buttons can sit in a bottom row or a **vertical column on the panel's left edge**; the resize handle can switch between the bottom-right corner and a **left-edge column** (keeps both clear of other plugins' overlays)
 - 🌳 **Folder tree**: Obsidian-style collapsible groups; ungrouped entries stay flat
 - 🔀 **Continue in a new session**: runs DSH's native fork on a snapshot at the chosen turn (resume from 123 and keep going 12367); transcript fallback if the source session is gone
 - 🏷️ **Manage**: folders, colored tags, per-entry colors, pinning, search, multi-select batch delete
@@ -70,6 +71,8 @@ Or remove the dependency and bundle declaration from `profiles/desktop/package.j
 
 - **Dock**: `settings.window.dock: "right"`; right edge pinned, drag the left edge to resize (min 280); workspace is *squeezed* via margin so nothing is covered; released automatically on collapse/close; when docked the panel is flat and seamless (no shadow, no own top border — its top edge sits flush under the conversation divider)
 - **Drag performance**: while dragging/resizing there are **no store writes and no requests** — size goes straight to the DOM (throttled by `requestAnimationFrame`), the workspace linkage is throttled to ~90 ms, and the panel content is hidden behind a live-size placeholder screen; everything is committed once on release
+- **Resize handle position**: `settings.ui.resizeHandle` = `corner` (default, bottom-right) or `edge` (a full-height column on the window's left border; the left edge follows the pointer while the right edge stays put) — use `edge` when other plugins cover the bottom-right corner
+- **Action buttons position**: `settings.ui.actionBar` = `bottom` (default, a bottom row: new input / save snapshot / grab draft) or `left` (a vertical column on the panel's left edge)
 - **Session capture**: `remote.session.follow` + reverse `page` (slim events), storing `sessionId / lastSeq / transcript / agentPreset / cwd`
 - **Cut-off**: completed turns come from `turn/end` events; choosing turn N sets `atSeq` to that event's seq and records `turnCount` / `totalTurns`, trimming `records` and the transcript to match
 - **History paging**: the picker loads the newest `follow` page first, then walks back with `session.page({throughSeq})` (scroll-to-top does the same; browsing is capped at 20000 events, independent of the max-records setting) and tops up before saving
