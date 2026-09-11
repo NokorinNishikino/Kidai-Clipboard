@@ -3,7 +3,7 @@
 本文件记录 Kidai-ClipBoard (KCB) 的重要变更。
 All notable changes to this project are documented here. 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
-## [1.1.6] - 2026-09-10
+## [1.1.6] - 2026-09-11
 
 ### 新增 / Added
 - **操作按钮可排成左侧竖栏**：底部那三个按钮（新建输入 / 保存快照 / 抓取输入）原先只能排成底部一行；现在可在「设置 → 悬浮窗 → 操作按钮位置」切到**面板左侧竖栏**（34×34 图标按钮垂直排列 + 右侧分隔线），底部被其它插件浮层遮挡时更保险。设置键：`settings.ui.actionBar` = `bottom`（默认）/ `left`。
