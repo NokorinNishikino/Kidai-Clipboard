@@ -3,6 +3,14 @@
 本文件记录 Kidai-ClipBoard (KCB) 的重要变更。
 All notable changes to this project are documented here. 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
+## [1.1.6] - 2026-09-10
+
+### 新增 / Added
+- **操作按钮可排成左侧竖栏**：底部那三个按钮（新建输入 / 保存快照 / 抓取输入）原先只能排成底部一行；现在可在「设置 → 悬浮窗 → 操作按钮位置」切到**面板左侧竖栏**（34×34 图标按钮垂直排列 + 右侧分隔线），底部被其它插件浮层遮挡时更保险。设置键：`settings.ui.actionBar` = `bottom`（默认）/ `left`。
+- **缩放把手位置可切换**：右下角的缩放把手容易被其它插件的悬浮层挡住；现在可在「设置 → 悬浮窗 → 缩放把手位置」里改为**窗口左侧的整条竖列**。竖列模式下拖动左边缘：左边界跟随指针、右边界固定，宽度与 `x` 一并保存（`commitWindowSize(w, h, x)`）。停靠模式本来就是左侧竖列，不受影响。
+- 新增 i18n 键 `settingsResizeHandle` / `settingsResizeHandleDesc` / `resizeHandleCorner` / `resizeHandleEdge`（中英）。
+- **竖列把手可见性改进**：原来的竖列只有 6px、定位在 `left:-3px`（面板外沿）、常态不透明度 0.55 且没有任何提示，几乎看不见也抓不住。现在：贴面板内侧（`left:0`）、宽 8px、`z-index:6`、常态 0.35 不透明度、悬停面板时 0.6、**悬停把手时完全不透明并显示背景高亮**，中间还有一条 2px 的抓握指示；`:after` 的 `content` 用 CSS 单引号书写（避免与外层 JS 双引号字符串冲突）。
+
 ## [1.1.4] - 2026-09-10
 
 ### 修复 / Fixed
