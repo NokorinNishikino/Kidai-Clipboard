@@ -20,6 +20,7 @@ DeepSeek Harness 的对话、命令、片段散落在各个会话里。KCB 把�
 - 📜 **滚动选择历史轮次**：分支点列表先显示最近几轮，向上滚动持续加载更早的历史
 - 🔘 **回复行入口**：每条助手回复下方操作行里的「保存会话分支」，默认定位到该回复所在轮次
 - 🧰 **布局可调**：操作按钮可排成底部一行或**面板左侧竖栏**；缩放把手可在右下角或**左侧竖列**之间切换（避开其它插件浮层遮挡）
+- 🎈 **收起胶囊可拖动**：停靠收起后的竖条可上下拖动定位（记忆位置）；**向左拖离边缘**松手即变悬浮窗展开
 - 🌳 **文件树分组**：Obsidian 风格文件夹树，展开/收起，未分类平铺
 - 🖱️ **拖拽整理**：把条目拖到文件夹行＝移入，拖到另一条目＝插到它前/后并归入同一文件夹，拖到空白＝移出
 - ✏️ **文件夹编辑**：文件夹名称 + 调色板颜色（含「无色」），弹窗式编辑，随开随改
@@ -76,6 +77,8 @@ dsh plugin --profile desktop remove kidai-clipboard
 - **拖动性能**：拖动/缩放期间**零 store 写入、零请求**，尺寸直接写 DOM（`requestAnimationFrame` 节流），左侧工作区联动按 ~90 ms 节流；面板内容在拖动时隐藏并显示实时尺寸占位屏，松手才落库一次
 - **缩放把手位置**：`settings.ui.resizeHandle` = `corner`（默认，右下角）/ `edge`（窗口左侧整条竖列；左边界跟随指针、右边界固定）—— 右下角被其它插件遮挡时用 `edge`
 - **操作按钮位置**：`settings.ui.actionBar` = `bottom`（默认，底部一行：新建输入 / 保存快照 / 抓取输入）/ `left`（面板左侧竖栏排列）
+- **收起胶囊**：`settings.window.pillTop` 记忆竖直位置（缺省＝会话区顶）；位移 ≥3px 才算拖动、否则算点击（点击语义在 `pointerup` 判定，避免残留状态吞掉下一次点击）；**向左拖离右缘 >24px** 视为"拖出停靠" → `dock: null` 并在该位置以悬浮窗展开
+- **设置页框架**：参照 `kidai-snapshot-guard` —— 状态 chips（统计 + 版本）→ 横向页签（通用 / 会话保存 / 数据 / 关于）→ 卡片内容；`SettingsPanel({ layout })` 的 `hub` 形态用左侧品牌栏（168px），`classic`（设置页回退）用横向品牌头部
 - **拖拽整理**：原生 HTML5 拖放（`draggable` + `dragstart/dragover/drop`，条目 id 走 `dataTransfer`）。拖到文件夹行＝设 `folderId`；拖到另一条目＝按鼠标在卡片上下半决定插入前/后，并继承其 `folderId`，随后**重编同容器内所有条目的 `order`（0..n-1）**；拖到列表空白＝`folderId = null`。排序规则：置顶 → `order` → 最近更新。拖放事件一律 `stopPropagation`，否则会被父级（文件夹行/列表根）抢走
 - **文件夹编辑**：`prefs.folderEditor` 记录目标 id，弹窗内改名称 + 从 `PALETTE` 选色（含 null＝无色），`Enter` 保存 / `Esc` 关闭
 - **会话保存**：`remote.session.follow` + 反向 `page`（slim 事件），保存 `sessionId / lastSeq / transcript / agentPreset / cwd`
