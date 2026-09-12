@@ -3,6 +3,18 @@
 本文件记录 Kidai-ClipBoard (KCB) 的重要变更。
 All notable changes to this project are documented here. 格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)。
 
+## [1.2.4] - 2026-09-12
+
+### 变更 / Changed
+- **设置页布局对齐「纪代备份」**：设置页（Kidai Hub 页签 + 设置里的回退入口）改成与 `kidai-snapshot-guard` 一致的框架 —— 顶部一行**状态 chips**（统计 + 版本）、**横向页签**（通用 / 会话保存 / 数据 / 关于，正好对应原来的四个分区）、内容包进**卡片**（`.kidc_setCard`）。Hub 形态额外带**左侧品牌栏**（168px：`KCB` logo + 标题 + 统计副标题，`.kidc_brandRail`），设置页回退形态改用**横向品牌头部**（`.kidc_brandHead`）。`SettingsPanel` 新增 `layout` 参数（`hub` / `classic`）区分两种形态；「关于」里的版本号从写死的 `0.1.0` 改为真实常量 `PLUGIN_VERSION`。
+
+### 新增 / Added
+- **拖着胶囊离开边缘 → 展开为悬浮窗**：收起胶囊现在也能**水平拖动**，向左拖离右缘超过 24px 后松手，会**取消停靠（`dock: null`）并以悬浮窗口展开**，落点就是胶囊被拖到的位置（同时记住 `pillTop`）；没拖离边缘则仍旧只保存竖直位置。
+- **收起胶囊可上下拖动**：停靠收起后的竖条可以拖动调整竖直位置，范围限制在**会话区顶 ↔ 窗口底 − 胶囊高度**之间，位置持久化到 `settings.window.pillTop`（host 侧 `windowState` 已放行该字段）。拖动期间只走本地 state + 直接改 DOM（rAF 节流、**零 store 写入**），松手才落库一次；光标改为 `grab`/`grabbing`。
+
+### 修复 / Fixed
+- **收起胶囊"点不开"**：上一版用 `suppressClickRef` 吞掉"拖动后紧随的那次 click"，但拖动之后浏览器往往**并不产生** click —— 标记就一直留着，把**下一次真正的点击**吃掉，用户感觉怎么点都打不开。现在点击语义改由 `pointerup` 判定（没有位移即视为点击并展开），键盘触发用 `onClick` 里的 `detail === 0` 兜底，不再有任何残留状态。
+
 ## [1.2.0] - 2026-09-12
 
 ### 新增 / Added
