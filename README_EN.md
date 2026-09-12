@@ -21,6 +21,8 @@ Conversations, commands and snippets are scattered across sessions. KCB brings "
 - 🔘 **Per-reply entry**: a "save session branch" button in every assistant reply's action row, defaulting to that reply's turn
 - 🧰 **Adjustable layout**: action buttons can sit in a bottom row or a **vertical column on the panel's left edge**; the resize handle can switch between the bottom-right corner and a **left-edge column** (keeps both clear of other plugins' overlays)
 - 🌳 **Folder tree**: Obsidian-style collapsible groups; ungrouped entries stay flat
+- 🖱️ **Drag to organise**: drop an entry on a folder row to move it in, on another entry to insert before/after it (and adopt that entry's folder), or on empty space to take it out
+- ✏️ **Folder editor**: rename a folder and pick its palette colour (including "none") in a modal
 - 🔀 **Continue in a new session**: runs DSH's native fork on a snapshot at the chosen turn (resume from 123 and keep going 12367); transcript fallback if the source session is gone
 - 🏷️ **Manage**: folders, colored tags, per-entry colors, pinning, search, multi-select batch delete
 
@@ -74,6 +76,8 @@ Or remove the dependency and bundle declaration from `profiles/desktop/package.j
 - **Drag performance**: while dragging/resizing there are **no store writes and no requests** — size goes straight to the DOM (throttled by `requestAnimationFrame`), the workspace linkage is throttled to ~90 ms, and the panel content is hidden behind a live-size placeholder screen; everything is committed once on release
 - **Resize handle position**: `settings.ui.resizeHandle` = `corner` (default, bottom-right) or `edge` (a full-height column on the window's left border; the left edge follows the pointer while the right edge stays put) — use `edge` when other plugins cover the bottom-right corner
 - **Action buttons position**: `settings.ui.actionBar` = `bottom` (default, a bottom row: new input / save snapshot / grab draft) or `left` (a vertical column on the panel's left edge)
+- **Drag to organise**: native HTML5 drag & drop (`draggable` + `dragstart/dragover/drop`, the entry id travels via `dataTransfer`). Onto a folder row → set `folderId`; onto another entry → insert before/after depending on which half of the card the pointer is in, adopting that entry's `folderId`, then **re-number `order` (0..n-1) for every entry in that container**; onto empty space → `folderId = null`. Sort order: pinned → `order` → most recently updated. Every drop handler calls `stopPropagation`, otherwise the parent (folder row / list root) steals the highlight
+- **Folder editor**: `prefs.folderEditor` holds the target id; the modal edits the name and picks a colour from `PALETTE` (null = none); `Enter` saves, `Esc` closes
 - **Session capture**: `remote.session.follow` + reverse `page` (slim events), storing `sessionId / lastSeq / transcript / agentPreset / cwd`
 - **Cut-off**: completed turns come from `turn/end` events; choosing turn N sets `atSeq` to that event's seq and records `turnCount` / `totalTurns`, trimming `records` and the transcript to match
 - **History paging**: the picker loads the newest `follow` page first, then walks back with `session.page({throughSeq})` (scroll-to-top does the same; browsing is capped at 20000 events, independent of the max-records setting) and tops up before saving
